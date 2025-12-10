@@ -25,7 +25,7 @@ func init() {
 	if errDB != nil {
 		log.Fatalf("⛔ Unable to connect to database: %v\n", errDB)
 	} else {
-		log.Println("DATABASE CONNECTED 🥇")
+		log.Println("DATABASE CONNECTEDD 🥇")
 	}
 
 }
