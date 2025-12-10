@@ -1,65 +1,64 @@
-name: "Setup Dependencies"
-description: "Setup tools/dependencies"
-inputs:
-  # Task
-  install_task:
-    description: "install task if true"
-    default: "true"
-  task_version:
-    description: "version of task to install"
-    default: "v3.44.0"
+name: "setup-dependencies"
+description: "setup-dependencies"
 
-  # Language runtimes / toolchains
-  install_go:
-    description: "install go if true"
+inputs:
+  install-node:
+    description: "Should node be installed"
+    required: false
     default: "false"
-  install_node:
-    description: "install node if true"
+  install-go:
+    description: "Should go be installed"
+    required: false
     default: "false"
-  install_python:
-    description: "install python if true"
+  install-python:
+    description: "Should python be installed"
+    required: false
     default: "false"
-  service_path:
-    description: "path to service within repo (used to find version file)"
-    default: ""
+  install-task:
+    description: "Should task be installed"
+    required: false
+    default: "false"
 
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
-    - name: Install go-task
-      if: ${{ inputs.install_task == 'true' }}
-      uses: supplypike/setup-bin@1fafb085795af4a3f183502f3a9dffa8f7b83217 # v5.0.0
+    - name: setup-task
+      if: ${{ inputs.install-task == 'true' }}
+      shell: bash
+      run: |
+          curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | sudo -E bash
+          sudo apt update
+          sudo apt install -y task
+          task --version
+          
+    - name: setup-node
+      if: ${{ inputs.install-node == 'true' }}
+      uses: actions/setup-node@v6
       with:
-        uri: "https://github.com/go-task/task/releases/download/${{ inputs.task_version }}/task_linux_amd64.tar.gz"
-        name: task
-        version: ${{ inputs.task_version }}
+        node-version: 24
 
-    - name: Set up Go
-      if: ${{ inputs.install_go == 'true' }}
-      uses: actions/setup-go@1d76b952eb9246b03e20e15a9ef98c6d4af389ef # v5.5.0
+    - name: setup-python
+      if: ${{ inputs.install-python == 'true' }}
+      uses: actions/setup-python@v6
       with:
-        go-version-file: ./${{ inputs.service_path }}/go.mod
-        cache-dependency-path: "./${{ inputs.service_path }}/go.sum"
+        python-version: '3.11' 
+    - name: pipx-and-poetry
+      if: ${{ inputs.install-python == 'true' }}
+      shell: bash 
+      run: | 
+        sudo apt update
+        sudo apt install pipx -y
+        pipx ensurepath
+        
+        # 2. Add the pipx default install location to the environment variable file.
+        # This makes the change available for all subsequent steps.
+        echo "PATH=$PATH:/root/.local/bin" >> $GITHUB_ENV
+        
+        # 3. Install Poetry
+        pipx install poetry
 
-    - name: Set up Node
-      if: ${{ inputs.install_node == 'true' }}
-      uses: actions/setup-node@d7a11313b581b306c961b506cfc8971208bb03f6 # v4.4.0
+    - name: setup-go
+      if: ${{ inputs.install-go == 'true' }}
+      uses: actions/setup-go@v6
       with:
-        node-version-file: ./${{ inputs.service_path }}/package.json
-        cache: npm
-        cache-dependency-path: ./${{ inputs.service_path }}/package-lock.json
-
-    # Installing poetry before running setup-python to enable using poetry type cache
-    - name: Set up Poetry
-      if: ${{ inputs.install_python == 'true' }}
-      uses: snok/install-poetry@d526ede1e27960b7b181a5ac53044f552afdaa38 # v1.4.1
-
-    - name: Set up Python
-      if: ${{ inputs.install_python == 'true' }}
-      uses: actions/setup-python@3d1e2d2ca0a067f27da6fec484fce7f5256def85 # v5.6.0
-      with:
-        python-version-file: ./${{ inputs.service_path }}/pyproject.toml
-        cache: poetry
-        cache-dependency-path: ./${{ inputs.service_path }}/poetry.lock
-
-    # TODO: add namespace.sh setup steps
+        go-version: '1.23'
