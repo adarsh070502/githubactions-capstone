@@ -46,9 +46,9 @@ jobs:
         uses: ./.github/actions/setup-dependencies
         with:
           install-task: true
-          install-node: startsWith(matrix.service, 'services/node')
-          install-go: startsWith(matrix.service, 'services/go')
-          install-python: startsWith(matrix.service, 'services/python')
+          install-node: ${{ startsWith(matrix.service, 'services/node') }}
+          install-go: ${{ startsWith(matrix.service, 'services/go') }}
+          install-python: ${{ startsWith(matrix.service, 'services/python') }}
           
       - name: install-packages
         run: task install
