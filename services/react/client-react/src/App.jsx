@@ -26,7 +26,7 @@ function CurrentTime(props) {
       <p>API: {data.api}</p>
       <p>Time from DB: {data.currentTime}</p>
       <p>Request Count: {data.requestCount}</p>
-      <div>{isFetching ? "Updating..." : ""}</div>
+      <div>{isFetching ? "Updating...." : ""}</div>
     </div>
   );
 }
