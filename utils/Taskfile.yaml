@@ -25,11 +25,11 @@ tasks:
       VERSION:
         sh: task -s generate-version -- {{.SERVICE_RELEASE_TAG}}
     cmds:
-      - |
-        echo "--- DEBUG ---"
-        echo "IMAGE_REPOOO=${.IMAGE_REPO}" # Now more likely to appear
-        echo "--- RELEASE TAG ---"
-        echo "{{.IMAGE_REPO}}:{{.VERSION}}"
+    - |
+      echo "--- DEBUG ---"
+      echo "IMAGE_REPOOO={{.IMAGE_REPO}}"
+      echo "--- RELEASE TAG ---"
+      echo "{{.IMAGE_REPO}}:{{.VERSION}}"
 
   generate-extended-version:
     desc: "Emit X.Y.Z-000N-g<SHA> using generate-version as the base"
