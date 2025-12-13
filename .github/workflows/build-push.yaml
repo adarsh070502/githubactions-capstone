@@ -1,9 +1,15 @@
-name: Build and Push Container Images
+name: "Build Image"
+on: 
+  pull_request: 
+    branches: ["main"]
+    types: [closed]
+    paths:
+      - services/**
 
-on:
   push:
     branches:
       - main
+      - test_branch
     paths:
       - services/**
     tags:
@@ -26,114 +32,117 @@ on:
         required: false
         type: string
 
-permissions:
-  actions: write # used to trigger deploy workflow
-  contents: read
-
 jobs:
   filter:
     runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
     outputs:
       services: ${{ steps.set-output.outputs.services }}
       environment: ${{ steps.set-output.outputs.environment }}
     steps:
-      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493 # v5.0.0
-        if: ${{ github.event_name == 'push' && github.ref_type == 'branch' && github.ref_name == 'main' }}
-      - name: Paths Changes Filter
+      - name: checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: diff-check
+        uses: dorny/paths-filter@v3
         id: filter
-        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
-        if: ${{ github.event_name == 'push' && github.ref_type == 'branch' && github.ref_name == 'main' }}
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           filters: .github/utils/file-filters.yaml
-      - name: Set Output
+          base: main
+      
+      - name: set-output
         id: set-output
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo 'services=["${{ inputs.service }}"]' >> "$GITHUB_OUTPUT"
-            echo 'environment=development' >> "$GITHUB_OUTPUT"
-
+            echo "environment=development" >> "$GITHUB_OUTPUT"
+            echo "services=[\"${{inputs.service}}\"]" >> "$GITHUB_OUTPUT"
+          
           elif [[ "${{ github.ref_type }}" == "tag" ]]; then
-            tag="${GITHUB_REF_NAME}"        # e.g. service-a@1.2.3
+            echo "environment=production" >> "$GITHUB_OUTPUT"
+            tag="${GITHUB_REF_NAME}"
             svc="${tag%%@*}"
-            echo "services=[\"$svc\"]" >> "$GITHUB_OUTPUT"
-            echo 'environment=production' >> "$GITHUB_OUTPUT"
-
-          else # push to main
-            echo 'services=${{ steps.filter.outputs.changes }}' >> "$GITHUB_OUTPUT"
-            echo 'environment=staging' >> "$GITHUB_OUTPUT"
+            echo "services=[\"${svc}\"]" >> "$GITHUB_OUTPUT"
+          
+          else
+            echo "environment=staging" >> "$GITHUB_OUTPUT"
+            json_services=$(echo '["services/python/load-generator-python"]' | jq -c '[.[] | tostring]')
+            echo "services=$json_services" >> "$GITHUB_OUTPUT"
           fi
-
-  build-push-container-images:
+      - name: echo-outputs
+        run: |
+              echo Services="${{ steps.set-output.outputs.services }}"
+              echo Environment="${{ steps.set-output.outputs.environment }}"
+  
+  build-container-image:
     runs-on: ubuntu-24.04
     if: ${{ needs.filter.outputs.services != '[]' && needs.filter.outputs.services != '' }}
-    needs: filter
+    needs: ["filter"]
     strategy:
+      fail-fast: false
       matrix:
         service: ${{ fromJson(needs.filter.outputs.services) }}
-      fail-fast: false
+    environment: ${{ needs.filter.outputs.environment }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ matrix.service }}
     steps:
-      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493 # v5.0.0
+      - name: checkout
+        uses: actions/checkout@v6.0.1
         with:
-          # Setting fetch-depth: 0 ensure tags are fetched (so git describe works properly)
           fetch-depth: 0
-      - uses: ./.github/actions/setup-dependencies
+
+      - name: set-up-task
+        uses: ./.github/actions/setup-dependencies
         with:
-          install_task: "true"
+          install-task: true
+
       - name: Login to Docker Hub
-        if: ${{ !env.ACT }}
-        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
+        uses: docker/login-action@v3
         with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ vars.docker_username }}
+          password: ${{ secrets.docker_access_token }} 
+      
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@05340d1c670183e7caabdb33ae9f1c80fae3b0c2 # v3.6.0
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@1583c0f09d26c58c59d25b0eef29792b7ce99d9a # v3.11.1
-      - name: Compute image tag
-        id: image-tag
+        uses: docker/setup-buildx-action@v3
+
+      - name: compute-image-tag
+        id: compute-image-tag
         working-directory: ${{ matrix.service }}
         env:
+          INPUT_VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.version || ''  }}
           ENVIRONMENT: ${{ needs.filter.outputs.environment }}
-          INPUT_VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.version || '' }}
           SERVICE: ${{ matrix.service }}
-        shell: bash
         run: |
           if [[ -n "$INPUT_VERSION" ]]; then
-            version=$INPUT_VERSION
-            image_tag=$(task utils:manual-version-tag -- "$INPUT_VERSION")
+            version="$INPUT_VERSION"
+            image_tag=$(task utils:manual-version-tag VERSION="$INPUT_VERSION")
+          
           elif [[ "$ENVIRONMENT" == "production" ]]; then
+            echo "In elif"
+            echo "Servicee=$SERVICE"
             version=$(task utils:generate-version -- "$SERVICE")
-            image_tag=$(task utils:generate-version-tag -- "$SERVICE")
+            echo "versionn=${version}"
+            image_tag=$(task utils:generate-version-tag -- "$SERVICE") 
+
           else
+            echo "In else"
             version=$(task utils:generate-extended-version -- "$SERVICE")
             image_tag=$(task utils:generate-extended-version-tag -- "$SERVICE")
           fi
 
-          echo "version=${version}" >> "$GITHUB_OUTPUT"
           echo "image_tag=${image_tag}" >> "$GITHUB_OUTPUT"
+          echo "image_taggg=${image_tag}"
 
-      - name: Build and push Docker images
-        uses: docker/build-push-action@ccc2b40e9ea6518f9252a22a990f8e868370f62e # v6.18.0
+      - name: Build and push
+        uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.service }}
           push: ${{ !env.ACT }} # Don't push images when running locally
-          tags: ${{ steps.image-tag.outputs.image_tag }}
-          platforms: linux/amd64 # TODO: add multi arch "linux/amd64,linux/arm64"
-          # TODO: handle cache invalidation for version changes in package.json
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      # Trigger deploy as a separate workflow to:
-      #   1. enable running it manually via workflow_dispatch
-      #   2. keep workflows smaller and more focused
-      # We could use reuseable workflow (with workflow_call trigger... but being able to trigger manually is nice)
-      - name: Trigger Deploy
-        if: ${{ !env.ACT }} # Don't trigger deploy when running locally
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh workflow run update-gitops-manifests.yaml \
-            -f service=${{ matrix.service }} \
-            -f version=${{ steps.image-tag.outputs.version }} \
-            -f environment=${{ needs.filter.outputs.environment }}
+          tags: ${{ steps.compute-image-tag.outputs.image_tag }}

@@ -8,10 +8,15 @@ tasks:
     cmds:
       - |
         set -euo pipefail
-        TAG=$(git describe --tags --always --first-parent --match "{{.SERVICE_RELEASE_TAG}}@[0-9]*.[0-9]*.[0-9]*")
+
+        #example: api-node@1.2.3
+        TAG=$(git describe --tags --always --first-parent --match "{{.SERVICE_RELEASE_TAG}}@[0-9]*.[0-9]*.[0-9]*") 
+
+        #example: api-node@
         PREFIX="{{.SERVICE_RELEASE_TAG}}@"
-        echo "${TAG#${PREFIX}}"
-    silent: true
+
+        #example: 1.2.3
+        echo "${TAG#${PREFIX}}" 
 
   generate-version-tag:
     desc: "Combine the image repo with the version tag"
@@ -21,6 +26,9 @@ tasks:
         sh: task -s generate-version -- {{.SERVICE_RELEASE_TAG}}
     cmds:
       - |
+        echo "--- DEBUG ---"
+        echo "IMAGE_REPOOO=${.IMAGE_REPO}" # Now more likely to appear
+        echo "--- RELEASE TAG ---"
         echo "{{.IMAGE_REPO}}:{{.VERSION}}"
 
   generate-extended-version:
@@ -59,7 +67,7 @@ tasks:
   manual-version-tag:
     desc: "Combine the image repo with the input version tag"
     vars:
-      VERSION: "{{.CLI_ARGS}}"
+      VERSION: "{{.VERSION}}"
     cmds:
       - |
         echo "{{.IMAGE_REPO}}:{{.VERSION}}"
