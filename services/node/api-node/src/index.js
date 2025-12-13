@@ -22,7 +22,7 @@ app.get("/ping", async (_, res) => {
 });
 
 const server = app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  console.log(`Examplee app listening on port ${port}`);
 });
 
 process.on("SIGTERM", () => {

@@ -26,9 +26,6 @@ tasks:
         sh: task -s generate-version -- {{.SERVICE_RELEASE_TAG}}
     cmds:
     - |
-      echo "--- DEBUG ---"
-      echo "IMAGE_REPOOO={{.IMAGE_REPO}}"
-      echo "--- RELEASE TAG ---"
       echo "{{.IMAGE_REPO}}:{{.VERSION}}"
 
   generate-extended-version:
