@@ -95,7 +95,8 @@ tasks:
     cmds:
       - task: update-image-tags
         vars:
-          IDENTIFIER_COMMENT: "# {{.ENVIRONMENT}}_{{.SERVICE_RELEASE_TAG}}"
+          IDENTIFIER_COMMENT: 
+            sh: echo "# {{.ENVIRONMENT}}_{{.SERVICE_RELEASE_TAG}}"
           STARTING_PATH:
             sh: git rev-parse --show-toplevel
 
