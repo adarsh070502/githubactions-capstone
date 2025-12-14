@@ -48,7 +48,7 @@ jobs:
 
       - uses: ./.github/actions/setup-dependencies
         with:
-          install_task: "true"
+          install-task: "true"
           install-python: "true"
       - name: Generate Commit Message
         id: generate-commit-message
