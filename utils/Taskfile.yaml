@@ -88,7 +88,7 @@ tasks:
       - cmd: |
           echo "Running python file..."
           echo "Starting path = {{ .STARTING_PATH }}"
-          python3 {{ .STARTING_PATH }}/utils/update_manifest_files.py --starting_path {{ .STARTING_PATH }} --identifier_comment {{ .IDENTIFIER_COMMENT }}  --new_tag {{ .NEW_TAG }}
+          python3 {{ .STARTING_PATH }}/utils/update_manifest_files.py --starting_path {{ .STARTING_PATH }} --identifier_comment "{{ .IDENTIFIER_COMMENT }}"  --new_tag {{ .NEW_TAG }}
 
   update-image-tags-service:
     desc: "Update image tags for kluctl config"
