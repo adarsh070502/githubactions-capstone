@@ -86,13 +86,9 @@ tasks:
           echo "NEW_TAG: {{ .NEW_TAG }}"
         silent: true
       - cmd: |
-          find "{{.STARTING_PATH}}" -type f \( -name "*.yaml" -o -name "*.yml" \) -exec grep -l "{{.IDENTIFIER_COMMENT}}" {} \; | while read -r file; do
-            if ! echo "{{ .EXCLUDED_FILES }}" | grep -q "$file"; then
-              echo "Updating: $file"
-              # NOTE: macos and GNU sed behave differently here... GNU sed is available in the devbox environment
-              sed -i "s|\(\s*.*:\s*\).* \({{ .IDENTIFIER_COMMENT }}\)|\1{{ .NEW_TAG }} \2|" "$file";
-            fi
-          done
+          echo "Running python file..."
+          echo "Starting path = {{ .STARTING_PATH }}"
+          python3 {{ .STARTING_PATH }}/utils/update_manifest_files.py --starting_path {{ .STARTING_PATH }} --identifier_comment {{ .IDENTIFIER_COMMENT }}  --new_tag {{ .NEW_TAG }}
 
   update-image-tags-service:
     desc: "Update image tags for kluctl config"
