@@ -15,6 +15,8 @@ def main(starting_path, identifier_comment, exclude_files, new_tag):
         rf'^(\s*version:\s*)([^\s#]+)(\s*#\s*{re.escape(identifier_comment)}.*)$'
     )
 
+    print("No of yaml files found:", len(yaml_files))
+    
     for file in yaml_files:
         if file in exclude_files:
             continue
@@ -100,8 +102,8 @@ if __name__ == "__main__":
         exclude_files = []
         
     print(starting_path)
-    print(identifier_comment)
     print(exclude_files)
     print(new_tag)
-    identifier_comment = " ".join(identifier_comment)
+    identifier_comment = identifier_comment[0]
+    print(f"identifier_comment: ",identifier_comment)
     main(starting_path, identifier_comment, exclude_files, new_tag)
