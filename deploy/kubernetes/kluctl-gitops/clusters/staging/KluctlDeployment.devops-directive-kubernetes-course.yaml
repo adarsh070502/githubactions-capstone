@@ -7,7 +7,7 @@ spec:
   interval: 5m
   source:
     git:
-      url: https://github.com/sidpalas/capstone.git
+      url: https://github.com/adarsh070502/capstone.git
       path: deploy/kubernetes/kluctl
   target: staging
   context: default
