@@ -44,4 +44,4 @@ jobs:
           # To report GitHub Actions status checks
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEFAULT_BRANCH: main
-          FILTER_REGEX_INCLUDE: ^services/.*\.(py|js|cjs|mjs|ts|jsx|tsx|go)$
+          VALIDATE_ALL_CODEBASE: false
