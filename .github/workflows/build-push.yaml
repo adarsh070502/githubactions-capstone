@@ -32,6 +32,10 @@ on:
         required: false
         type: string
 
+permissions:
+  actions: write # used to trigger deploy workflow
+  contents: read
+
 jobs:
   filter:
     runs-on: ubuntu-24.04
@@ -155,7 +159,6 @@ jobs:
 
 
       - name: Install-gh-cli
-        if: ${{ !env.ACT }} # Don't trigger deploy when running locally
         run: |
             (type -p wget >/dev/null || (sudo apt update && sudo apt install wget -y)) \
             && sudo mkdir -p -m 755 /etc/apt/keyrings \
@@ -168,7 +171,6 @@ jobs:
             && sudo apt install gh -y
 
       - name: Trigger Deploy
-        if: ${{ !env.ACT }} # Don't trigger deploy when running locally
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
