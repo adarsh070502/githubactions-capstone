@@ -64,15 +64,15 @@ if __name__ == "__main__":
         required=True,
         help="New Tag"
     )
-    
+
     parser.add_argument(
         "--identifier_comment",
+        nargs='+',  # Key: '+' means 1 or more arguments are expected, and they are collected into a list.
         type=str,
-        required=True,
+        required=False,
         help="Identifier Comment"
     )
-
-    # B. The List (Nargs and Type are key here)
+    
     parser.add_argument(
         "--exclude_files",
         nargs='+',  # Key: '+' means 1 or more arguments are expected, and they are collected into a list.
@@ -98,8 +98,10 @@ if __name__ == "__main__":
         raise Exception("Provide new tag")
     if exclude_files is None or exclude_files == "":
         exclude_files = []
+        
     print(starting_path)
     print(identifier_comment)
     print(exclude_files)
     print(new_tag)
+    identifier_comment = " ".join(identifier_comment)
     main(starting_path, identifier_comment, exclude_files, new_tag)
