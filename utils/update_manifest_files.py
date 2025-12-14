@@ -104,6 +104,6 @@ if __name__ == "__main__":
     print(starting_path)
     print(exclude_files)
     print(new_tag)
-    identifier_comment = identifier_comment[0]
+    identifier_comment = identifier_comment[0].strip()
     print(f"identifier_comment: ",identifier_comment)
     main(starting_path, identifier_comment, exclude_files, new_tag)
