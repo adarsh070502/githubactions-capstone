@@ -1,0 +1,15 @@
+{
+  "pull_request": {
+    "number": 10,
+    "commits": 1,
+    "changed_files": 1,
+    "base": {
+      "ref": "main",
+      "sha": "1111111111111111111111111111111111111111"
+    },
+    "head": {
+      "ref": "feature/test-lint",
+      "sha": "2222222222222222222222222222222222222222"
+    }
+  }
+}
