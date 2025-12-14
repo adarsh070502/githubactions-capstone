@@ -20,7 +20,6 @@ def main(starting_path, identifier_comment, exclude_files, new_tag):
     for file in yaml_files:
         if file in exclude_files:
             continue
-
         try:
             lines = file.read_text(encoding="utf-8").splitlines(keepends=True)
         except UnicodeDecodeError:
@@ -104,6 +103,7 @@ if __name__ == "__main__":
     print(starting_path)
     print(exclude_files)
     print(new_tag)
-    identifier_comment = identifier_comment[0].strip()
+    identifier_comment = " ".join(identifier_comment) #identifier_comment[0].strip()
+    identifier_comment = identifier_comment.lstrip("# ").strip()
     print(f"identifier_comment: ",identifier_comment)
     main(starting_path, identifier_comment, exclude_files, new_tag)
