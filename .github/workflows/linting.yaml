@@ -2,8 +2,19 @@
 name: Lint
 
 on: # yamllint disable-line rule:truthy
-  push: null
-  pull_request: null
+  push: 
+    branches:
+      - main
+      - testing1
+    paths:
+      - services/**
+    tags:
+      - "**@[0-9]*.[0-9]*.[0-9]*"
+
+  pull_request:
+    branches: ["main"]
+    paths:
+      - services/**
 
 permissions: {}
 
@@ -33,3 +44,4 @@ jobs:
           # To report GitHub Actions status checks
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEFAULT_BRANCH: main
+          FILTER_REGEX_INCLUDE: ^services/.*\.(py|js|cjs|mjs|ts|jsx|tsx|go)$
