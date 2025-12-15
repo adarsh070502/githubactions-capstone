@@ -45,6 +45,11 @@ tasks:
     cmds:
       - echo "NO-OP, nothing to install"
 
+  install:
+    desc: install/download package dependencies
+    cmds:
+      - echo "NO-OP, nothing to install"
+
   test:
     desc: run tests
     cmds:
