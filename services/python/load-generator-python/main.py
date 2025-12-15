@@ -26,7 +26,7 @@ def signal_handler(signum, frame):
 
 if __name__ == "__main__":
     # Configure logging
-    print("Hereeeeeeeeeee")
+    print("Hereeeeeeeeeeee")
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
     # Read environment variables
